@@ -12,33 +12,16 @@ jobs:
           java-version: '17'
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
-      - name: Build APK with aapt
+      - name: Build APK
         run: |
-          # Create android project manually
-          mkdir -p build/android
-          # Compile resources
-          aapt2 compile -o build/android/resources.zip app/src/main/res/values/styles.xml
-          # Build APK
-          mkdir -p build/apk
-          # Simple approach: zip the assets and rename
-          cd app/src/main
-          zip -r ../../../build/apk/app.zip assets/ -x "*.DS_Store"
-          cd ../../..
-          # Create minimal APK using Android toolchain
-          echo "APK will be built using gradle"
-      - name: Build with Gradle
-        run: |
-          # Download gradle wrapper
           cd ${{ github.workspace }}
           mkdir -p gradle/wrapper
-          curl -sL "https://github.com/gradle/gradle/raw/v8.5.0/gradle/wrapper/gradle-wrapper.jar" -o gradle/wrapper/gradle-wrapper.jar
-          # Create wrapper properties
-          echo "distributionUrl=https\\://services.gradle.org/distributions/gradle-8.5-bin.zip" > gradle/wrapper/gradle-wrapper.properties
-          # Create gradlew script
+          curl -sL -o gradle/wrapper/gradle-wrapper.jar "https://github.com/gradle/gradle/raw/v8.5.0/gradle/wrapper/gradle-wrapper.jar"
+          echo -e 'distributionBase=GRADLE_USER_HOME\ndistributionPath=wrapper/dists\ndistributionUrl=https\\://services.gradle.org/distributions/gradle-8.5-bin.zip\nzipStoreBase=GRADLE_USER_HOME\nzipStorePath=wrapper/dists' > gradle/wrapper/gradle-wrapper.properties
           echo '#!/bin/bash' > gradlew
           echo 'exec java -jar "$(dirname "$0")/gradle/wrapper/gradle-wrapper.jar" "$@"' >> gradlew
           chmod +x gradlew
-          # Build
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
           ./gradlew assembleDebug --no-daemon
       - name: Upload APK
         uses: actions/upload-artifact@v4
