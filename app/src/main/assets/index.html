@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>错题本</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; background: #f5f6f8; color: #2c3e50; min-height: 100vh; }
+.container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+header { text-align: center; padding: 20px 0; }
+header h1 { font-size: 26px; font-weight: 600; color: #1a1a2e; letter-spacing: 1px; }
+header p { font-size: 13px; color: #888; margin-top: 4px; }
+.card { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 20px; margin-bottom: 16px; }
+.card h3 { font-size: 15px; color: #555; margin-bottom: 14px; font-weight: 500; border-left: 3px solid #4a90d9; padding-left: 10px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; }
+.row > * { flex: 1; min-width: 140px; }
+label { display: block; font-size: 13px; color: #666; margin-bottom: 4px; }
+input, textarea, select { width: 100%; padding: 9px 11px; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 14px; outline: none; transition: border 0.2s; background: #fafbfc; }
+input:focus, textarea:focus, select:focus { border-color: #4a90d9; background: #fff; }
+textarea { resize: vertical; min-height: 60px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; padding: 9px 18px; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; transition: all 0.2s; font-weight: 500; gap: 6px; }
+.btn-primary { background: #4a90d9; color: #fff; }
+.btn-primary:hover { background: #3a7bc8; }
+.btn-success { background: #52c41a; color: #fff; }
+.btn-success:hover { background: #45b016; }
+.btn-warning { background: #faad14; color: #fff; }
+.btn-warning:hover { background: #e09d12; }
+.btn-danger { background: #ff4d4f; color: #fff; }
+.btn-danger:hover { background: #e04343; }
+.btn-outline { background: #fff; color: #4a90d9; border: 1px solid #4a90d9; }
+.btn-outline:hover { background: #f0f7ff; }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.search-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.search-bar input, .search-bar select { flex: 1; min-width: 120px; }
+.stats-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.stat-item { flex: 1; min-width: 100px; text-align: center; padding: 12px 8px; background: #f8fafc; border-radius: 8px; }
+.stat-item .num { font-size: 28px; font-weight: 700; color: #4a90d9; }
+.stat-item .label { font-size: 12px; color: #888; margin-top: 2px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid #eee; }
+th { background: #fafbfc; font-weight: 500; color: #666; font-size: 12px; white-space: nowrap; }
+tr:hover td { background: #f8faff; }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; background: #e8f4fd; color: #4a90d9; }
+.actions-cell { white-space: nowrap; }
+.actions-cell .btn { margin-right: 4px; }
+.modal-mask { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 999; justify-content: center; align-items: center; }
+.modal-mask.show { display: flex; }
+.modal { background: #fff; border-radius: 12px; padding: 24px; width: 90%; max-width: 600px; max-height: 85vh; overflow-y: auto; box-shadow: 0 8px 30px rgba(0,0,0,0.15); }
+.modal h3 { margin-bottom: 16px; font-size: 18px; color: #1a1a2e; }
+.toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1a1a2e; color: #fff; padding: 10px 24px; border-radius: 20px; font-size: 14px; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+.toast.show { opacity: 1; }
+.empty { text-align: center; padding: 40px; color: #aaa; font-size: 14px; }
+@media (max-width: 640px) { .row > * { min-width: 100%; } table { font-size: 11px; } th, td { padding: 6px 4px; } }
+.mic-recording { background: #ff4d4f !important; color: #fff !important; border-color: #ff4d4f !important; animation: pulse 1s infinite; }
+@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>📒 错题本</h1>
+    <p>记录每一道错题，让进步有迹可循</p>
+  </header>
+
+  <!-- 统计 -->
+  <div class="card" id="statsCard">
+    <h3>📊 统计概览</h3>
+    <div class="stats-row" id="statsRow"></div>
+  </div>
+
+  <!-- 添加 / 编辑表单 -->
+  <div class="card" id="formCard">
+    <h3 id="formTitle">✏️ 添加错题（只记知识点概念不清、思路卡壳、反复出错、典型陷阱）</h3>
+    <input type="hidden" id="editId">
+    <div class="row">
+      <div><label>科目 / 分类</label><div style="display:flex;gap:6px"><select id="subject" style="flex:1"><option value="">-- 选择或新建 --</option></select><button class="btn btn-sm btn-outline" onclick="addNewOption('subject')" title="新建科目" style="flex-shrink:0;padding:5px 10px">+</button></div></div>
+      <div><label>章节 / 知识点</label><div style="display:flex;gap:6px"><select id="chapter" style="flex:1"><option value="">-- 选择或新建 --</option></select><button class="btn btn-sm btn-outline" onclick="addNewOption('chapter')" title="新建章节" style="flex-shrink:0;padding:5px 10px">+</button></div></div>
+    </div>
+    <div style="margin-top:10px"><label>题目内容</label><textarea id="question" rows="3" placeholder="粘贴或输入题目..."></textarea></div>
+    <div class="row" style="margin-top:10px">
+      <div><label>❌ 错误答案</label><textarea id="wrongAnswer" rows="2" placeholder="你做错的答案"></textarea></div>
+      <div><label>✅ 正确答案</label><textarea id="correctAnswer" rows="2" placeholder="正确的答案"></textarea></div>
+    </div>
+    <div style="margin-top:10px"><label>🧠 学到了什么（解题思路）</label><div style="display:flex;gap:6px"><textarea id="learned" rows="2" placeholder="解题思路 / 突破口 / 易错点 / 要记住的结论" style="flex:1"></textarea><button class="btn btn-outline btn-sm" id="micBtn" onclick="startVoiceInput()" title="语音输入" style="flex-shrink:0;align-self:flex-end;padding:9px 12px;font-size:18px">🎤</button></div></div>
+    <div style="margin-top:10px"><label>📝 备注 / 错因分析</label><textarea id="note" rows="2" placeholder="为什么会错？注意什么？"></textarea></div>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="saveEntry()">💾 保存</button>
+      <button class="btn btn-outline" onclick="resetForm()" id="cancelBtn" style="display:none">取消编辑</button>
+    </div>
+  </div>
+
+  <!-- 搜索 & 操作 -->
+  <div class="card">
+    <h3>🔍 错题列表</h3>
+    <div class="search-bar">
+      <input id="searchInput" placeholder="搜索题目内容..." oninput="renderTable()">
+      <select id="filterSubject" onchange="renderTable()"><option value="">全部科目</option></select>
+    </div>
+    <div class="btn-group" style="margin-bottom:12px">
+      <button class="btn btn-sm btn-outline" onclick="exportData()">📥 导出 JSON</button>
+      <button class="btn btn-sm btn-outline" onclick="document.getElementById('importFile').click()">📤 导入 JSON</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+      <button class="btn btn-sm btn-outline" onclick="toggleReviewMode()" id="reviewBtn">📝 复习模式</button>
+      <button class="btn btn-sm btn-danger" onclick="clearAll()">🗑 清空全部</button>
+    </div>
+    <div id="tableContainer"></div>
+  </div>
+</div>
+
+<div class="modal-mask" id="detailModal">
+  <div class="modal" id="detailContent"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'error_book_data';
+const SUBJECTS_KEY = 'error_book_subjects';
+const CHAPTERS_KEY = 'error_book_chapters';
+let data = [];
+let editingId = null;
+let reviewMode = false;
+
+function loadData() {
+  try { data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch(e) { data = []; }
+}
+function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+
+function loadOptions() {
+  ['subject','chapter'].forEach(field => {
+    const key = field === 'subject' ? SUBJECTS_KEY : CHAPTERS_KEY;
+    const list = JSON.parse(localStorage.getItem(key)) || [];
+    const sel = document.getElementById(field);
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">-- 选择或新建 --</option>' + list.map(v => '<option value="' + v + '">' + v + '</option>').join('');
+    if ([...list].includes(cur)) sel.value = cur;
+  });
+}
+function addNewOption(field) {
+  const val = prompt('请输入新的' + (field === 'subject' ? '科目' : '章节') + '名称：');
+  if (!val || !val.trim()) return;
+  const key = field === 'subject' ? SUBJECTS_KEY : CHAPTERS_KEY;
+  let list = JSON.parse(localStorage.getItem(key)) || [];
+  if (!list.includes(val.trim())) { list.push(val.trim()); localStorage.setItem(key, JSON.stringify(list)); }
+  loadOptions();
+  document.getElementById(field).value = val.trim();
+}
+function saveOption(val, key) {
+  if (!val) return;
+  let list = JSON.parse(localStorage.getItem(key)) || [];
+  if (!list.includes(val)) { list.push(val); localStorage.setItem(key, JSON.stringify(list)); }
+}
+function refreshFilterSubject() {
+  const subjects = [...new Set(data.map(d => d.subject).filter(Boolean))];
+  const sel = document.getElementById('filterSubject');
+  const curVal = sel.value;
+  sel.innerHTML = '<option value="">全部科目</option>' + subjects.map(s => '<option value="' + s + '">' + s + '</option>').join('');
+  sel.value = curVal;
+}
+function toggleReviewMode() {
+  reviewMode = !reviewMode;
+  const btn = document.getElementById('reviewBtn');
+  btn.textContent = reviewMode ? '📝 复习中' : '📝 复习模式';
+  btn.className = reviewMode ? 'btn btn-sm btn-success' : 'btn btn-sm btn-outline';
+  renderTable();
+}
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._tid); t._tid = setTimeout(() => t.classList.remove('show'), 1800);
+}
+function startVoiceInput() {
+  const ta = document.getElementById('learned');
+  const btn = document.getElementById('micBtn');
+  if (window._isRecording) {
+    window._isRecording = false;
+    btn.classList.remove('mic-recording');
+    btn.textContent = '🎤';
+    ta.value = '⏳ 识别中...';
+    fetch('/stop', { method: 'POST' })
+      .then(r => r.json())
+      .then(data => {
+        if (data.text) ta.value = data.text;
+        else if (data.error) ta.value = '❌ ' + data.error;
+        else ta.value = '⚠ 未识别到语音';
+      })
+      .catch(() => { ta.value = '❌ 识别失败，请重试'; });
+    return;
+  }
+  fetch('/start', { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+      if (data.status === 'started') {
+        window._isRecording = true;
+        btn.classList.add('mic-recording');
+        btn.textContent = '⏹';
+        ta.value = '🎤 录音中，点击 ⏹ 结束';
+      }
+    })
+      .catch(() => { ta.value = '❌ 语音服务未运行'; });
+}
+
+function saveEntry() {
+  const subject = document.getElementById('subject').value.trim();
+  const question = document.getElementById('question').value.trim();
+  if (!subject || !question) return toast('请至少填写科目和题目内容');
+  const entry = {
+    id: editingId || Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+    subject,
+    chapter: document.getElementById('chapter').value.trim(),
+    question,
+    wrongAnswer: document.getElementById('wrongAnswer').value.trim(),
+    correctAnswer: document.getElementById('correctAnswer').value.trim(),
+    learned: document.getElementById('learned').value.trim(),
+    note: document.getElementById('note').value.trim(),
+    createdAt: editingId ? (data.find(d => d.id === editingId)?.createdAt || new Date().toISOString()) : new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  if (editingId) {
+    const idx = data.findIndex(d => d.id === editingId);
+    if (idx >= 0) data[idx] = entry;
+    editingId = null;
+    document.getElementById('cancelBtn').style.display = 'none';
+    document.getElementById('formTitle').textContent = '✏️ 添加错题';
+    toast('✅ 已更新');
+  } else {
+    data.unshift(entry);
+    toast('✅ 已添加');
+  }
+  saveData(); saveOption(entry.subject, SUBJECTS_KEY); saveOption(entry.chapter, CHAPTERS_KEY); resetForm(true); renderAll(); loadOptions(); refreshFilterSubject();
+}
+
+function editEntry(id) {
+  const entry = data.find(d => d.id === id);
+  if (!entry) return;
+  editingId = id;
+  document.getElementById('editId').value = id;
+  document.getElementById('subject').value = entry.subject;
+  document.getElementById('chapter').value = entry.chapter || '';
+  document.getElementById('question').value = entry.question;
+  document.getElementById('wrongAnswer').value = entry.wrongAnswer || '';
+  document.getElementById('correctAnswer').value = entry.correctAnswer || '';
+  document.getElementById('learned').value = entry.learned || '';
+  document.getElementById('note').value = entry.note || '';
+  document.getElementById('formTitle').textContent = '✏️ 编辑错题';
+  document.getElementById('cancelBtn').style.display = '';
+  document.getElementById('formCard').scrollIntoView({ behavior: 'smooth' });
+}
+
+function resetForm(silent) {
+  editingId = null;
+  document.getElementById('editId').value = '';
+  document.getElementById('subject').value = '';
+  document.getElementById('chapter').value = '';
+  document.getElementById('question').value = '';
+  document.getElementById('wrongAnswer').value = '';
+  document.getElementById('correctAnswer').value = '';
+  document.getElementById('learned').value = '';
+  document.getElementById('note').value = '';
+  document.getElementById('formTitle').textContent = '✏️ 添加错题';
+  document.getElementById('cancelBtn').style.display = 'none';
+}
+
+function deleteEntry(id) {
+  if (!confirm('确定删除这道错题吗？')) return;
+  data = data.filter(d => d.id !== id);
+  if (editingId === id) resetForm();
+  saveData(); renderAll(); toast('已删除');
+}
+
+function clearAll() {
+  if (!data.length) return toast('错题本已经是空的');
+  if (!confirm('确定清空所有错题吗？此操作不可恢复！')) return;
+  data = []; editingId = null; resetForm(true); saveData(); renderAll(); toast('已清空全部错题');
+}
+
+function showDetail(id) {
+  const entry = data.find(d => d.id === id);
+  if (!entry) return;
+  const mask = document.getElementById('detailModal');
+  const content = document.getElementById('detailContent');
+  const fmt = (v) => v ? v.replace(/\n/g, '<br>') : '<span style="color:#ccc">（无）</span>';
+  if (reviewMode) {
+    content.innerHTML = `<h3>🧐 复习模式</h3>
+      <p><strong>科目：</strong>${fmt(entry.subject)}</p>
+      <p><strong>章节：</strong>${fmt(entry.chapter)}</p>
+      <hr style="margin:10px 0;border-color:#eee">
+      <p><strong>📌 题目：</strong></p><p style="background:#fafbfc;padding:10px;border-radius:6px">${fmt(entry.question)}</p>
+      <div id="reviewAnswer" style="display:none;margin-top:12px">
+        <p><strong>❌ 错误答案：</strong></p><p style="background:#fff5f5;padding:10px;border-radius:6px;color:#c00">${fmt(entry.wrongAnswer)}</p>
+        <p style="margin-top:8px"><strong>✅ 正确答案：</strong></p><p style="background:#f5fff5;padding:10px;border-radius:6px;color:#2a0">${fmt(entry.correctAnswer)}</p>
+        <p style="margin-top:8px"><strong>🧠 学到了什么：</strong></p><p style="background:#fffbe6;padding:10px;border-radius:6px">${fmt(entry.learned)}</p>
+        <p style="margin-top:8px"><strong>📝 备注：</strong></p><p style="background:#fafbfc;padding:10px;border-radius:6px">${fmt(entry.note)}</p>
+        <p style="margin-top:10px;font-size:11px;color:#aaa">创建：${new Date(entry.createdAt).toLocaleString()} | 更新：${new Date(entry.updatedAt).toLocaleString()}</p>
+      </div>
+      <div class="btn-group" id="reviewBtnGroup">
+        <button class="btn btn-success btn-sm" onclick="document.getElementById('reviewAnswer').style.display='block';document.getElementById('reviewBtnGroup').style.display='none'">🖊 我做完了，显示答案</button>
+        <button class="btn btn-outline btn-sm" onclick="closeDetail()">关闭</button>
+      </div>`;
+  } else {
+    content.innerHTML = `<h3>📋 错题详情</h3>
+      <p><strong>科目：</strong>${fmt(entry.subject)}</p>
+      <p><strong>章节：</strong>${fmt(entry.chapter)}</p>
+      <hr style="margin:10px 0;border-color:#eee">
+      <p><strong>📌 题目：</strong></p><p style="background:#fafbfc;padding:10px;border-radius:6px">${fmt(entry.question)}</p>
+      <p style="margin-top:8px"><strong>❌ 错误答案：</strong></p><p style="background:#fff5f5;padding:10px;border-radius:6px;color:#c00">${fmt(entry.wrongAnswer)}</p>
+      <p style="margin-top:8px"><strong>✅ 正确答案：</strong></p><p style="background:#f5fff5;padding:10px;border-radius:6px;color:#2a0">${fmt(entry.correctAnswer)}</p>
+      <p style="margin-top:8px"><strong>🧠 学到了什么：</strong></p><p style="background:#fffbe6;padding:10px;border-radius:6px">${fmt(entry.learned)}</p>
+      <p style="margin-top:8px"><strong>📝 备注：</strong></p><p style="background:#fafbfc;padding:10px;border-radius:6px">${fmt(entry.note)}</p>
+      <p style="margin-top:10px;font-size:11px;color:#aaa">创建：${new Date(entry.createdAt).toLocaleString()} | 更新：${new Date(entry.updatedAt).toLocaleString()}</p>
+      <div class="btn-group"><button class="btn btn-primary btn-sm" onclick="editEntry('${id}');closeDetail()">编辑</button><button class="btn btn-outline btn-sm" onclick="closeDetail()">关闭</button></div>`;
+  }
+  mask.classList.add('show');
+}
+function closeDetail() { document.getElementById('detailModal').classList.remove('show'); }
+document.getElementById('detailModal').addEventListener('click', function(e) { if (e.target === this) closeDetail(); });
+
+function exportData() {
+  if (!data.length) return toast('没有可导出的数据');
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = '错题本备份_' + new Date().toISOString().slice(0,10) + '.json';
+  a.click(); toast('📥 导出成功');
+}
+
+function importData(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      if (!Array.isArray(imported)) throw new Error('格式不正确');
+      const merged = [...imported, ...data];
+      const seen = new Set(); const deduped = [];
+      for (const item of merged) {
+        if (!seen.has(item.id)) { seen.add(item.id); deduped.push(item); }
+      }
+      data = deduped;
+      saveData(); data.forEach(d => { saveOption(d.subject, SUBJECTS_KEY); saveOption(d.chapter, CHAPTERS_KEY); });
+      loadOptions(); renderAll(); toast('📤 已导入 ' + imported.length + ' 条，合并后共 ' + data.length + ' 条');
+    } catch(err) { toast('导入失败：文件格式不正确'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function renderStats() {
+  const row = document.getElementById('statsRow');
+  const subjects = [...new Set(data.map(d => d.subject).filter(Boolean))];
+  let html = `<div class="stat-item"><div class="num">${data.length}</div><div class="label">总错题数</div></div>
+    <div class="stat-item"><div class="num">${subjects.length}</div><div class="label">科目数</div></div>`;
+  subjects.forEach(s => {
+    html += `<div class="stat-item"><div class="num">${data.filter(d => d.subject === s).length}</div><div class="label">${s}</div></div>`;
+  });
+  row.innerHTML = html;
+}
+
+function renderTable() {
+  const container = document.getElementById('tableContainer');
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const filterSub = document.getElementById('filterSubject').value;
+  let filtered = data.filter(d => {
+    const matchSearch = !search || d.question.toLowerCase().includes(search) || d.subject.toLowerCase().includes(search) || (d.chapter && d.chapter.toLowerCase().includes(search));
+    const matchSub = !filterSub || d.subject === filterSub;
+    return matchSearch && matchSub;
+  });
+  if (!filtered.length) { container.innerHTML = '<div class="empty">📭 暂无错题记录，快去添加吧</div>'; return; }
+  if (reviewMode) {
+    let html = '<table><thead><tr><th style="width:36px">#</th><th>科目</th><th>章节</th><th>题目</th><th>时间</th><th>操作</th></tr></thead><tbody>';
+    filtered.forEach((d, i) => {
+      const trunc = (s, n) => s && s.length > n ? s.slice(0, n) + '…' : (s || '');
+      html += `<tr>
+        <td style="text-align:center;color:#999">${i + 1}</td>
+        <td><span class="tag">${d.subject}</span></td>
+        <td>${trunc(d.chapter, 10)}</td>
+        <td style="cursor:pointer;color:#4a90d9" onclick="showDetail('${d.id}')" title="点击查看详情">${trunc(d.question, 36)}</td>
+        <td style="font-size:11px;color:#999">${new Date(d.updatedAt).toLocaleDateString()}</td>
+        <td class="actions-cell"><button class="btn btn-sm btn-success" onclick="showDetail('${d.id}')">💡 查看答案</button><button class="btn btn-sm btn-warning" onclick="editEntry('${d.id}')">编辑</button><button class="btn btn-sm btn-danger" onclick="deleteEntry('${d.id}')">删除</button></td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    container.innerHTML = html;
+  } else {
+    let html = '<table><thead><tr><th style="width:36px">#</th><th>科目</th><th>章节</th><th>题目</th><th>错误答案</th><th>正确答案</th><th>学到什么</th><th>时间</th><th>操作</th></tr></thead><tbody>';
+    filtered.forEach((d, i) => {
+      const trunc = (s, n) => s && s.length > n ? s.slice(0, n) + '…' : (s || '');
+      html += `<tr>
+        <td style="text-align:center;color:#999">${i + 1}</td>
+        <td><span class="tag">${d.subject}</span></td>
+        <td>${trunc(d.chapter, 10)}</td>
+        <td style="cursor:pointer;color:#4a90d9" onclick="showDetail('${d.id}')" title="点击查看详情">${trunc(d.question, 28)}</td>
+        <td style="color:#c00">${trunc(d.wrongAnswer, 16)}</td>
+        <td style="color:#2a0">${trunc(d.correctAnswer, 16)}</td>
+        <td style="color:#b8860b">${trunc(d.learned, 16)}</td>
+        <td style="font-size:11px;color:#999">${new Date(d.updatedAt).toLocaleDateString()}</td>
+        <td class="actions-cell"><button class="btn btn-sm btn-warning" onclick="editEntry('${d.id}')">编辑</button><button class="btn btn-sm btn-danger" onclick="deleteEntry('${d.id}')">删除</button></td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    container.innerHTML = html;
+  }
+}
+
+function renderAll() { renderStats(); renderTable(); refreshFilterSubject(); }
+
+document.addEventListener('keydown', function(e) {
+  if (e.ctrlKey && e.key === 's') { e.preventDefault(); saveEntry(); }
+  if (e.key === 'Escape') { closeDetail(); if (editingId) resetForm(); }
+});
+
+loadData(); loadOptions(); renderAll();
+</script>
+</body>
+</html>
